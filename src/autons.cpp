@@ -52,19 +52,31 @@ void default_constants() {
 // Drive Example
 ///
 void drive_example() {
-  // The first parameter is target inches
-  // The second parameter is max speed the robot will drive at
-  // The third parameter is a boolean (true or false) for enabling/disabling a slew at the start of drive motions
-  // for slew, only enable it when the drive distance is greater than the slew distance + a few inches
+    // Drive until the robot is close enough (distance < 150 mm)
+    while (distSensor.get_distance() > 150) {
+      // Start driving forward
+      chassis.drive_set(80, 0);
+      pros::delay(10);
+    }
 
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
+    // Stop driving
+    chassis.drive_set(0, 0);
 
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
-  chassis.pid_wait();
+    // Get color hue
+    int hue = colorSensor.get_hue();
 
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED);
-  chassis.pid_wait();
+    // Check if it's red using hue wraparound logic
+    bool isRed = (hue >= 340 || hue <= 20);
+
+    if (isRed) {
+        // Turn right if red
+        chassis.pid_turn_set(90, 100);
+        chassis.pid_wait();
+    } else if (hue >= 60 && hue <= 120) {
+        // Swing left if green
+        chassis.pid_swing_set(ez::LEFT_SWING, 60, 100);
+        chassis.pid_wait();
+    }
 }
 
 ///
